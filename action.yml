@@ -44,32 +44,32 @@ runs:
       uses: scaleway/action-scw@v0
       id: namespace_list
       with:
-        args: registry namespace list name=${{ inputs.namespace }} -o json
+        args: registry namespace list name=${{ inputs.namespace }}
     - name: Get namespace id
       shell: bash
       id: namespace_id
       run: |
-        echo "::set-output name=id::$(echo '${{ steps.namespace_list.outputs.stdout }}' | jq -r '.[0].id')"
+        echo "::set-output name=id::$(echo '${{ steps.namespace_list.outputs.json }}' | jq -r '.[0].id')"
     - name: Get image list
       uses: scaleway/action-scw@v0
       id: image_list
       with:
-          args: registry image list namespace-id=${{ steps.namespace_id.outputs.id }} name=${{ inputs.image_name }} -o json
+          args: registry image list namespace-id=${{ steps.namespace_id.outputs.id }} name=${{ inputs.image_name }}
     - name: Get image id
       shell: bash
       id: image_id
       run: |
-          echo "::set-output name=id::$(echo '${{ steps.image_list.outputs.stdout }}' | jq -r '.[0].id')"
+          echo "::set-output name=id::$(echo '${{ steps.image_list.outputs.json }}' | jq -r '.[0].id')"
     - name: Get tag list
       uses: scaleway/action-scw@v0
       id: tag_list
       with:
-          args: registry tag list image-id=${{ steps.image_id.outputs.id }} -name=${{ steps.clean_tag.outputs.tag }} -o json
+          args: registry tag list image-id=${{ steps.image_id.outputs.id }} -name=${{ steps.clean_tag.outputs.tag }}
     - name: Get tag id
       shell: bash
       id: tag_id
       run: |
-          echo "::set-output name=id::$(echo '${{ steps.tag_list.outputs.stdout }}' | jq -r '.[0].id')"
+          echo "::set-output name=id::$(echo '${{ steps.tag_list.outputs.json }}' | jq -r '.[0].id')"
     - name: Delete tag
       uses: scaleway/action-scw@v0
       with:
