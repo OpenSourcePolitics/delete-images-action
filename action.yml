@@ -1,0 +1,53 @@
+name: 'delete image tag from Registry'
+description: 'delete image tag from Registry, for now rename it to outdated'
+inputs:
+  registry:
+    description: 'Registry url'
+    required: true
+  namespace:
+    description: 'Namespace'
+    required: true
+  password:
+    description: 'Password'
+    required: true
+  username:
+    description: 'Username'
+    required: false
+    default: "userdoesnotmatter"
+  image_name:
+    description: 'Image name'
+    required: true
+  tag:
+    description: 'Image tags'
+    required: true
+  outdated_tag:
+    description: 'Outdated image tags'
+    default: "outdated"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v2
+    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
+      shell: bash
+    - name: Clean tag
+      uses: OpenSourcePolitics/clean-tag-action@master
+      id: clean_tag
+      with:
+        tag: ${{ inputs.tag }}
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    - name: Login to Scaleway registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
+    - name: Rename image
+      run: |
+        docker tag ${{ inputs.registry }}/${{ inputs.namespace }}/${{ inputs.image_name }}:${{ steps.clean_tag.outputs.tag }} ${{ inputs.registry }}/${{ inputs.namespace }}/${{ inputs.image_name }}:${{ inputs.outdated_tag }}
+      shell: bash
+    - name: Push image
+      run: |
+        docker push ${{ inputs.registry }}/${{ inputs.namespace }}/${{ inputs.image_name }}:${{ inputs.outdated_tag }}
+      shell: bash
