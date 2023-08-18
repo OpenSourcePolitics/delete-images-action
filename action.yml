@@ -64,7 +64,7 @@ runs:
       uses: scaleway/action-scw@v0
       id: tag_list
       with:
-          args: registry tag list image-id=${{ steps.image_id.outputs.id }} -name=${{ steps.clean_tag.outputs.tag }}
+          args: registry tag list image-id=${{ steps.image_id.outputs.id }} name=${{ steps.clean_tag.outputs.tag }}
     - name: Get tag id
       shell: bash
       id: tag_id
