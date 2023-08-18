@@ -28,7 +28,7 @@ Allows to delete an image tag from a Scaleway image registry.
 ## Usage 
 ```yaml
 - name: Build and push Docker image
-  uses: OpenSourcePolitics/delete-images-action@v1
+  uses: OpenSourcePolitics/delete-images-action@master
   with:
     namespace: ${{ vars.REGISTRY_NAMESPACE }}
     scw_access_key: ${{ secrets.ACCESS_TOKEN }}
