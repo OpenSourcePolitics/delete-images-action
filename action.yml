@@ -34,18 +34,17 @@ runs:
     - name: Use CLI
       uses: scaleway/action-scw@v0
       with:
-        save_config: true
-        export_config: true
+        export-config: true
         version: v2.13.0
         access-key: ${{ inputs.scw_access_key }}
         secret-key: ${{ inputs.scw_secret_key }}
         default-project-id: ${{ inputs.scw_default_project_id }}
-        default-organization-id: ${{ secrets.scw_default_organization_id }}
+        default-organization-id: ${{ inputs.scw_default_organization_id }}
     - name: Get namespace list
       uses: scaleway/action-scw@v0
       id: namespace_list
       with:
-        args: scw registry namespace list name=${{ input.namespace }} -o json
+        args: registry namespace list name=${{ inputs.namespace }} -o json
     - name: Get namespace id
       shell: bash
       id: namespace_id
@@ -55,7 +54,7 @@ runs:
       uses: scaleway/action-scw@v0
       id: image_list
       with:
-          args: scw registry image list namespace-id=${{ steps.namespace_id.outputs.id }} name=${{ input.image_name }} -o json
+          args: registry image list namespace-id=${{ steps.namespace_id.outputs.id }} name=${{ inputs.image_name }} -o json
     - name: Get image id
       shell: bash
       id: image_id
@@ -65,7 +64,7 @@ runs:
       uses: scaleway/action-scw@v0
       id: tag_list
       with:
-          args: scw registry tag list image-id=${{ steps.image_id.outputs.id }} -name=${{ steps.clean_tag.outputs.tag }} -o json
+          args: registry tag list image-id=${{ steps.image_id.outputs.id }} -name=${{ steps.clean_tag.outputs.tag }} -o json
     - name: Get tag id
       shell: bash
       id: tag_id
@@ -74,4 +73,4 @@ runs:
     - name: Delete tag
       uses: scaleway/action-scw@v0
       with:
-          args: scw registry image tag delete ${{ steps.tag_id.outputs.id }}
+          args: registry image tag delete ${{ steps.tag_id.outputs.id }}
