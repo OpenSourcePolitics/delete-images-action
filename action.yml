@@ -73,4 +73,4 @@ runs:
     - name: Delete tag
       uses: scaleway/action-scw@v0
       with:
-          args: registry image tag delete ${{ steps.tag_id.outputs.id }}
+          args: registry tag delete ${{ steps.tag_id.outputs.id }}
