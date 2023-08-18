@@ -1,41 +1,40 @@
 # Delete image tag action
 
-Allows to delete a Docker image tag from a Docker registry.
-For now, only renaming is supported.
+Allows to delete an image tag from a Scaleway image registry.
 
 ## Inputs
-- registry:
-  - description: 'Registry url'
-  - required: true
 - namespace:
   - description: 'Namespace'
   - required: true
-- password:
-  - description: 'Password'
+- scw_access_key:
+  - description: 'scw_access_key'
   - required: true
-- username:
-  - description: 'Username'
-  - required: false
-  - default: "userdoesnotmatter"
+- scw_secret_key:
+  - description: 'scw_secret_key'
+  - required: true
+- scw_default_project_id:
+  - description: 'scw_default_project_id'
+  - required: true
+- scw_default_organization_id:
+  - description: 'scw_default_organization_id'
+  - required: true
 - image_name:
   - description: 'Image name'
   - required: true
 - tag:
   - description: 'Image tags'
   - required: true
-- outdated_tag:
-  - description: 'Outdated image tags'
-  - default: "outdated"
 
 ## Usage 
 ```yaml
 - name: Build and push Docker image
   uses: OpenSourcePolitics/delete-images-action@v1
   with:
-    registry: ${{ secrets.REGISTRY_URL }}
-    namespace: ${{ secrets.REGISTRY_NAMESPACE }}
-    password: ${{ secrets.REGISTRY_PASSWORD }}
-    username: ${{ secrets.REGISTRY_USERNAME }}
-    image_name: ${{ secrets.REGISTRY_IMAGE_NAME }}
-    tag: ${{ github.ref }}
+    namespace: ${{ vars.REGISTRY_NAMESPACE }}
+    scw_access_key: ${{ secrets.ACCESS_TOKEN }}
+    scw_secret_key: ${{ secrets.TOKEN }}
+    scw_default_project_id: ${{ secrets.SCW_PROJECT_ID }} 
+    scw_default_organization_id: ${{ secrets.SCW_ORGANIZATION_ID }}
+    image_name: ${{ vars.IMAGE_NAME }}
+    tag: "my_tag"
 ```

@@ -1,57 +1,77 @@
-name: 'delete image tag from Registry'
-description: 'delete image tag from Registry, for now rename it to outdated'
+name: 'Delete image tag from Registry'
+description: 'Delete image tag from Registry, for now rename it to outdated'
 inputs:
-  registry:
-    description: 'Registry url'
-    required: true
   namespace:
     description: 'Namespace'
     required: true
-  password:
-    description: 'Password'
+  scw_access_key:
+    description: 'scw_access_key'
     required: true
-  username:
-    description: 'Username'
-    required: false
-    default: "userdoesnotmatter"
+  scw_secret_key:
+    description: 'scw_secret_key'
+    required: true
+  scw_default_project_id:
+    description: 'scw_default_project_id'
+    required: true
+  scw_default_organization_id:
+    description: 'scw_default_organization_id'
+    required: true
   image_name:
     description: 'Image name'
     required: true
   tag:
     description: 'Image tags'
     required: true
-  outdated_tag:
-    description: 'Outdated image tags'
-    default: "outdated"
 
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v2
-    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
-      shell: bash
     - name: Clean tag
       uses: OpenSourcePolitics/clean-tag-action@master
       id: clean_tag
       with:
         tag: ${{ inputs.tag }}
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-    - name: Login to Scaleway registry
-      uses: docker/login-action@v2
+    - name: Use CLI
+      uses: scaleway/action-scw@v0
       with:
-        registry: ${{ inputs.registry }}
-        username: ${{ inputs.username }}
-        password: ${{ inputs.password }}
-    - name: Pull image
-      run: |
-        docker pull ${{ inputs.registry }}/${{ inputs.namespace }}/${{ inputs.image_name }}:${{ steps.clean_tag.outputs.tag }}
+        save_config: true
+        export_config: true
+        version: v2.13.0
+        access-key: ${{ inputs.scw_access_key }}
+        secret-key: ${{ inputs.scw_secret_key }}
+        default-project-id: ${{ inputs.scw_default_project_id }}
+        default-organization-id: ${{ secrets.scw_default_organization_id }}
+    - name: Get namespace list
+      uses: scaleway/action-scw@v0
+      id: namespace_list
+      with:
+        args: scw registry namespace list name=${{ input.namespace }} -o json
+    - name: Get namespace id
       shell: bash
-    - name: Rename image
+      id: namespace_id
       run: |
-        docker tag ${{ inputs.registry }}/${{ inputs.namespace }}/${{ inputs.image_name }}:${{ steps.clean_tag.outputs.tag }} ${{ inputs.registry }}/${{ inputs.namespace }}/${{ inputs.image_name }}:${{ inputs.outdated_tag }}
+        echo "::set-output name=id::$(echo '${{ steps.namespace_list.outputs.stdout }}' | jq -r '.[0].id')"
+    - name: Get image list
+      uses: scaleway/action-scw@v0
+      id: image_list
+      with:
+          args: scw registry image list namespace-id=${{ steps.namespace_id.outputs.id }} name=${{ input.image_name }} -o json
+    - name: Get image id
       shell: bash
-    - name: Push image
+      id: image_id
       run: |
-        docker push ${{ inputs.registry }}/${{ inputs.namespace }}/${{ inputs.image_name }}:${{ inputs.outdated_tag }}
+          echo "::set-output name=id::$(echo '${{ steps.image_list.outputs.stdout }}' | jq -r '.[0].id')"
+    - name: Get tag list
+      uses: scaleway/action-scw@v0
+      id: tag_list
+      with:
+          args: scw registry tag list image-id=${{ steps.image_id.outputs.id }} -name=${{ steps.clean_tag.outputs.tag }} -o json
+    - name: Get tag id
       shell: bash
+      id: tag_id
+      run: |
+          echo "::set-output name=id::$(echo '${{ steps.tag_list.outputs.stdout }}' | jq -r '.[0].id')"
+    - name: Delete tag
+      uses: scaleway/action-scw@v0
+      with:
+          args: scw registry image tag delete ${{ steps.tag_id.outputs.id }}
